@@ -116,6 +116,33 @@ A comprehensive DDoS detection system with real-time monitoring, machine learnin
 - Auto-blocking toggle
 - Model selection
 
+## Model Training and Components
+
+The system uses a Random Forest classifier for attack detection. The training process includes:
+
+1. **Data Preprocessing**:
+   - Label encoding
+   - Feature standardization
+   - Top 30 feature selection
+
+2. **Model Components** (saved in `model2001/` directory):
+   - `random_forest_model.joblib`: Trained Random Forest model
+   - `scaler.joblib`: StandardScaler for feature normalization
+   - `feature_selector.joblib`: Feature selection component
+   - `selected_features.joblib`: List of selected features
+   - `confusion_matrix_*.png`: Model evaluation visualizations
+
+3. **Training Process**:
+   ```bash
+   python detect_ddos.py
+   ```
+   This will:
+   - Load and preprocess the dataset
+   - Train multiple models (Random Forest, SVM, KNN, etc.)
+   - Evaluate model performance
+   - Save the best model (Random Forest) and its components
+   - Generate confusion matrix visualizations
+
 ## Installation
 
 1. **Install Dependencies**
