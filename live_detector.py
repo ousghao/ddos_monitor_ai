@@ -11,6 +11,7 @@ import joblib
 import numpy as np
 from scapy.all import sniff, IP, TCP
 import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
 
 from utils.feature_extractor import FeatureExtractor
 from utils.visualizer import TrafficVisualizer
@@ -47,6 +48,9 @@ class DDoSDetector:
         # Load the trained model
         try:
             self.model = joblib.load(model_path)
+            # Ensure only RandomForestClassifier is used
+            if not isinstance(self.model, RandomForestClassifier):
+                raise TypeError(f"Loaded model is not a RandomForestClassifier! Found: {type(self.model)}. Please retrain and save the correct model.")
             logger.info(f"Successfully loaded model from {model_path}")
         except Exception as e:
             logger.error(f"Error loading model: {str(e)}")
