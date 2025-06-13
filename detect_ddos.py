@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import logging
 import sys
+import os
+import joblib
 from datetime import datetime
 import traceback
 
@@ -102,7 +104,38 @@ def preprocess_data(df):
         logger.error(traceback.format_exc())
         raise
 
-def evaluate_model(model, name, X_train, X_test, y_train, y_test):
+def save_model_and_components(model, name, scaler, selector, selected_features, model_dir="model2001"):
+    """Save model and necessary components for prediction"""
+    try:
+        # Create model directory if it doesn't exist
+        os.makedirs(model_dir, exist_ok=True)
+        
+        # Save model
+        model_path = os.path.join(model_dir, f"{name.lower().replace(' ', '_')}_model.joblib")
+        joblib.dump(model, model_path)
+        logger.info(f"Saved {name} model to {model_path}")
+        
+        # Save scaler
+        scaler_path = os.path.join(model_dir, "scaler.joblib")
+        joblib.dump(scaler, scaler_path)
+        logger.info(f"Saved scaler to {scaler_path}")
+        
+        # Save feature selector
+        selector_path = os.path.join(model_dir, "feature_selector.joblib")
+        joblib.dump(selector, selector_path)
+        logger.info(f"Saved feature selector to {selector_path}")
+        
+        # Save selected features
+        features_path = os.path.join(model_dir, "selected_features.joblib")
+        joblib.dump(selected_features, features_path)
+        logger.info(f"Saved selected features to {features_path}")
+        
+    except Exception as e:
+        logger.error(f"Error saving model components: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise
+
+def evaluate_model(model, name, X_train, X_test, y_train, y_test, scaler=None, selector=None, selected_features=None):
     """Evaluate model with error handling and detailed logging"""
     try:
         logger.info(f"Starting evaluation of {name}")
@@ -139,11 +172,15 @@ def evaluate_model(model, name, X_train, X_test, y_train, y_test):
             plt.title(f"{name} - Confusion Matrix")
             plt.xlabel("Predicted")
             plt.ylabel("Actual")
-            plt.savefig(f'confusion_matrix_{name}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.png')
+            plt.savefig(os.path.join('model2001', f'confusion_matrix_{name}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.png'))
             plt.close()
             logger.debug(f"Confusion matrix plot saved for {name}")
         except Exception as e:
             logger.error(f"Error plotting confusion matrix for {name}: {str(e)}")
+            
+        # Save model and components if it's Random Forest
+        if name == "Random Forest" and scaler is not None and selector is not None and selected_features is not None:
+            save_model_and_components(model, name, scaler, selector, selected_features)
             
     except Exception as e:
         logger.error(f"Error evaluating {name}: {str(e)}")
@@ -205,7 +242,7 @@ def main():
         
         # Evaluate each model
         for name, model in models.items():
-            evaluate_model(model, name, X_train, X_test, y_train, y_test)
+            evaluate_model(model, name, X_train, X_test, y_train, y_test, scaler, selector, selected_features)
             
         logger.info("Analysis completed successfully")
         
